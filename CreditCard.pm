@@ -10,12 +10,13 @@ package Business::CreditCard;
 # 1 Feb 2001 - 0.22 released, new maintainer, MakeMaker installation
 # 3 May 2001 - 0.23 released, silly bug in test.pl
 # 11 Jun 2001 - 0.24.  added enRoute, JCB, BankCard, rewrote with regexes
+# 10 Jul 2001 - 0.25, 0.26 *sigh*
 #
 # Copyright 1995,1996,1997 Jon Orwant.  All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 # 
-# Version 0.24.  Module list status is "Rdpf."
+# Version 0.26.  Module list status is "Rdpf."
 
 require 5;
 
@@ -24,7 +25,7 @@ use vars qw( @ISA $VERSION );
 
 @ISA = qw( Exporter );
 
-$VERSION = "0.23";
+$VERSION = "0.26";
 
 =head1 NAME
 
@@ -111,6 +112,7 @@ sub cardtype {
 }
 
 # from http://perl.about.com/compute/perl/library/nosearch/P073000.htm
+# verified by http://www.beachnet.com/~hstiles/cardtype.html
 # Card Type                         Prefix                           Length
 # MasterCard                        51-55                            16
 # VISA                              4                                13, 16
