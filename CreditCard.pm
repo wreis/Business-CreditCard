@@ -11,12 +11,13 @@ package Business::CreditCard;
 # 3 May 2001 - 0.23 released, silly bug in test.pl
 # 11 Jun 2001 - 0.24.  added enRoute, JCB, BankCard, rewrote with regexes
 # 10 Jul 2001 - 0.25, 0.26 *sigh*
+# 20 Han 2002 - 0.27 small typo for amex cards
 #
 # Copyright 1995,1996,1997 Jon Orwant.  All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 # 
-# Version 0.26.  Module list status is "Rdpf."
+# Version 0.27.  Module list status is "Rdpf."
 
 require 5;
 
@@ -25,7 +26,7 @@ use vars qw( @ISA $VERSION );
 
 @ISA = qw( Exporter );
 
-$VERSION = "0.26";
+$VERSION = "0.27";
 
 =head1 NAME
 
@@ -102,7 +103,7 @@ sub cardtype {
     return "VISA card" if $number =~ /^4\d{12}(\d{3})?$/o;
     return "MasterCard" if $number =~ /^5[1-5]\d{14}$/o;
     return "Discover card" if $number =~ /^6011\d{12}$/o;
-    return "American Express card" if $number =~ /^3[47]\d{13}/o;
+    return "American Express card" if $number =~ /^3[47]\d{13}$/o;
     return "Diner's Club/Carte Blanche"
       if $number =~ /^3(0[0-5]|[68]\d)\d{11}$/o;
     return "enRoute" if $number =~ /^2(014|149)\d{11}$/o;
