@@ -9,12 +9,13 @@ package Business::CreditCard;
 #             short numbers and numbers with letters are no longer kosher.
 # 1 Feb 2001 - 0.22 released, new maintainer, MakeMaker installation
 # 3 May 2001 - 0.23 released, silly bug in test.pl
+# 11 Jun 2001 - 0.24.  added enRoute, JCB, BankCard, rewrote with regexes
 #
 # Copyright 1995,1996,1997 Jon Orwant.  All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 # 
-# Version 0.23.  Module list status is "Rdpf."
+# Version 0.24.  Module list status is "Rdpf."
 
 require 5;
 
@@ -80,6 +81,10 @@ orwant@tpj.com
 Current maintainer is Ivan Kohler <ivan-business-creditcard@420.am>.
 Please don't bother Jon with emails about this module.
 
+Lee Lawrence <LeeL@aspin.co.uk> and Neale Banks <neale@lowendale.com.au>
+contributed support for additional card types.  Lee also contributed a working
+test.pl.
+
 =cut
 
 @EXPORT = qw(cardtype validate generate_last_digit);
@@ -93,13 +98,33 @@ sub cardtype {
 
     return "Not a credit card" unless length($number) >= 13 && 0+$number;
 
-    return "VISA card" if substr($number,0,1) == "4";
-    return "MasterCard" if substr($number,0,1) == "5";
-    return "Discover card" if substr($number,0,1) == "6";
-    return "American Express card" if substr($number,0,2) == "37";
-    return "Diner's Club, Transmedia, or other dining/entertainment card" if substr($number,0,1) == "3";
+    return "VISA card" if $number =~ /^4\d{12}(\d{3})?$/o;
+    return "MasterCard" if $number =~ /^5[1-5]\d{14}$/o;
+    return "Discover card" if $number =~ /^6011\d{12}$/o;
+    return "American Express card" if $number =~ /^3[47]\d{13}/o;
+    return "Diner's Club/Carte Blanche"
+      if $number =~ /^3(0[0-5]|[68]\d)\d{11}$/o;
+    return "enRoute" if $number =~ /^2(014|149)\d{11}$/o;
+    return "JCB" if $number =~ /^(3\d{4}|2131|1800)\d{11}$/o;
+    return "BankCard" if $number =~ /^56(10\d\d|022[1-5])\d{10}$/o;
     return "Unknown";
 }
+
+# from http://perl.about.com/compute/perl/library/nosearch/P073000.htm
+# Card Type                         Prefix                           Length
+# MasterCard                        51-55                            16
+# VISA                              4                                13, 16
+# American Express (AMEX)           34, 37                           15
+# Diners Club/Carte Blanche         300-305, 36, 38                  14
+# enRoute                           2014, 2149                       15
+# Discover                          6011                             16
+# JCB                               3                                16
+# JCB                               2131, 1800                       15
+#
+# from Neale Banks <neale@lowendale.com.au>
+# According to a booklet I have from Westpac (an Aussie bank), a card number
+# starting with 5610 or 56022[1-5] is a BankCard
+# BankCards have exactly 16 digits.
 
 sub generate_last_digit {
     my ($number) = @_;

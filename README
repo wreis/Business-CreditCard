@@ -12,3 +12,8 @@ orwant@tpj.com
 
 Current maintainer is Ivan Kohler <ivan-business-creditcard@420.am>.
 Please don't bother Jon with emails about this module.
+
+Lee Lawrence <LeeL@aspin.co.uk> and Neale Banks <neale@lowendale.com.au>
+contributed support for additional card types.  Lee also contributed a working
+test.pl.
+
