@@ -4,13 +4,15 @@ package Business::CreditCard;
 #
 # Jon Orwant, <orwant@media.mit.edu>
 #
-# 12 July 96
+# 12 Jul 96 - created
+# 17 Jan 97 - 0.21 released.
+#             short numbers and numbers with letters are no longer kosher.
 #
-# Copyright 1995 Jon Orwant.  All rights reserved.
+# Copyright 1995,1996,1997 Jon Orwant.  All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 # 
-# Version 0.1.  Module list status is "Rdpf."
+# Version 0.21.  Module list status is "Rdpf."
 
 require 5;
 
@@ -52,7 +54,7 @@ This module does I<not> tell you whether the number is on an actual
 card, only whether it might conceivably be on a real card.  To verify
 whether a card is real, or whether it's been stolen, or what its
 balance is, you need a Merchant ID, which gives you access to credit
-card databases.  The Perl Journal (http://work.media.mit.edu/tpj) has
+card databases.  The Perl Journal (http://tpj.com/tpj) has
 a Merchant ID so that I can accept MasterCard and VISA payments; it
 comes with the little pushbutton/slide-your-card-through device you've
 seen in restaurants and stores.  That device calculates the checksum
@@ -70,9 +72,9 @@ Then copy this file there.  That's it!
 
 Jon Orwant
 
-MIT Media Lab
+The Perl Journal and MIT Media Lab
 
-orwant@media.mit.edu
+orwant@tpj.com
 
 =cut
 
@@ -81,7 +83,11 @@ orwant@media.mit.edu
 sub cardtype {
     my ($number) = @_;
 
+    return "Not a credit card" if $number =~ /[^\d\s]/;
+
     $number =~ s/\D//g;
+
+    return "Not a credit card" unless length($number) >= 13 && 0+$number;
 
     return "VISA card" if substr($number,0,1) == "4";
     return "MasterCard" if substr($number,0,1) == "5";
@@ -108,8 +114,12 @@ sub generate_last_digit {
 sub validate {
     my ($number) = @_;
     my ($i, $sum, $weight);
+    
+    return 0 if $number =~ /[^\d\s]/;
 
     $number =~ s/\D//g;
+
+    return 0 unless length($number) >= 13 && 0+$number;
 
     for ($i = 0; $i < length($number) - 1; $i++) {
 	$weight = substr($number, -1 * ($i + 2), 1) * (2 - ($i % 2));
