@@ -1,0 +1,29 @@
+Revision history for Perl extension Business::CreditCard.
+
+0.28  Thu Jul  1 01:17:32 PDT 2004
+	- added Switch and Solo cards, patch from Max Becker
+	- added proper Changes file
+	- added documentation on cardtype() return values from
+          tmurray@agronomy.org (closes: cpan #3330)
+
+0.27  20 Jan 2002
+	- small typo for amex cards
+
+0.26  10 Jul 2001
+0.25  10 Jul 2001
+	- *sigh*
+
+0.24  11 Jun 2001
+	- added enRoute, JCB, BankCard, rewrote with regexes
+
+0.23  3 May 2001
+	- silly bug in test.pl
+
+0.22  1 Feb 2001
+	- new maintainer, MakeMaker installation
+
+0.21  17 Jan 97
+	- short numbers and numbers with letters are no longer kosher.
+
+12 Jul 96 - created
+

@@ -1,23 +1,13 @@
 package Business::CreditCard;
 
-# Business::CreditCard.pm
-#
 # Jon Orwant, <orwant@media.mit.edu>
-#
-# 12 Jul 96 - created
-# 17 Jan 97 - 0.21 released.
-#             short numbers and numbers with letters are no longer kosher.
-# 1 Feb 2001 - 0.22 released, new maintainer, MakeMaker installation
-# 3 May 2001 - 0.23 released, silly bug in test.pl
-# 11 Jun 2001 - 0.24.  added enRoute, JCB, BankCard, rewrote with regexes
-# 10 Jul 2001 - 0.25, 0.26 *sigh*
-# 20 Han 2002 - 0.27 small typo for amex cards
 #
 # Copyright 1995,1996,1997 Jon Orwant.  All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
-# 
-# Version 0.27.  Module list status is "Rdpf."
+#
+# Current maintainer is Ivan Kohler <ivan-business-creditcard@420.am>.
+# Please don't bother Jon with emails about this module.
 
 require 5;
 
@@ -26,7 +16,7 @@ use vars qw( @ISA $VERSION );
 
 @ISA = qw( Exporter );
 
-$VERSION = "0.27";
+$VERSION = "0.28";
 
 =head1 NAME
 
@@ -52,8 +42,24 @@ The validate() subroutine returns 1 if the card number provided passes
 the checksum test, and 0 otherwise.
 
 The cardtype() subroutine returns a string containing the type of
-card: "MasterCard", "VISA", and so on.  My list is not complete;
-I welcome additions.
+card.  My list is not complete; I welcome additions.
+
+Possible return values are:
+
+  VISA card
+  MasterCard
+  Discover card
+  American Express card
+  Diner's Club/Carte Blanche
+  enRoute
+  JCB
+  BankCard
+  Switch
+  Solo
+  Unknown
+
+"Not a credit card" is returned on obviously invalid
+data values.
 
 The generate_last_digit() subroutine computes and returns the last
 digit of the card given the preceding digits.  With a 16-digit card,
@@ -83,9 +89,9 @@ orwant@tpj.com
 Current maintainer is Ivan Kohler <ivan-business-creditcard@420.am>.
 Please don't bother Jon with emails about this module.
 
-Lee Lawrence <LeeL@aspin.co.uk> and Neale Banks <neale@lowendale.com.au>
-contributed support for additional card types.  Lee also contributed a working
-test.pl.
+Lee Lawrence <LeeL@aspin.co.uk>, Neale Banks <neale@lowendale.com.au> and
+Max Becker <Max.Becker@firstgate.com> contributed support for additional card
+types.  Lee also contributed a working test.pl.
 
 =cut
 
@@ -109,6 +115,12 @@ sub cardtype {
     return "enRoute" if $number =~ /^2(014|149)\d{11}$/o;
     return "JCB" if $number =~ /^(3\d{4}|2131|1800)\d{11}$/o;
     return "BankCard" if $number =~ /^56(10\d\d|022[1-5])\d{10}$/o;
+    return "Switch"
+      if $number =~ /^49(03(0[2-9]|3[5-9])|11(0[1-2]|7[4-9]|8[1-2])|36[0-9]{2})\d{10}(\d{2,3})?$/o
+      || $number =~ /^564182\d{10}(\d{2,3})?$/o
+      || $number =~ /^6(3(33[0-4][0-9])|759[0-9]{2})\d{10}(\d{2,3})?$/o;
+    return "Solo"
+      if $number =~ /^6(3(34[5-9][0-9])|767[0-9]{2})\d{10}(\d{2,3})?$/o;
     return "Unknown";
 }
 
@@ -128,6 +140,12 @@ sub cardtype {
 # According to a booklet I have from Westpac (an Aussie bank), a card number
 # starting with 5610 or 56022[1-5] is a BankCard
 # BankCards have exactly 16 digits.
+#
+# from "Becker, Max" <Max.Becker@firstgate.com>
+# It's mostly used in the UK and is either called "Switch" or "Solo".
+# Card Type                         Prefix                           Length
+# Switch                            various                          16,18,19
+# Solo                              63, 6767                         16,18,19
 
 sub generate_last_digit {
     my ($number) = @_;
