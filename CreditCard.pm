@@ -8,12 +8,13 @@ package Business::CreditCard;
 # 17 Jan 97 - 0.21 released.
 #             short numbers and numbers with letters are no longer kosher.
 # 1 Feb 2001 - 0.22 released, new maintainer, MakeMaker installation
+# 3 May 2001 - 0.23 released, silly bug in test.pl
 #
 # Copyright 1995,1996,1997 Jon Orwant.  All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 # 
-# Version 0.22.  Module list status is "Rdpf."
+# Version 0.23.  Module list status is "Rdpf."
 
 require 5;
 
@@ -22,7 +23,7 @@ use vars qw( @ISA $VERSION );
 
 @ISA = qw( Exporter );
 
-$VERSION = "0.22";
+$VERSION = "0.23";
 
 =head1 NAME
 
