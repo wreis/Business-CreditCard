@@ -7,17 +7,22 @@ package Business::CreditCard;
 # 12 Jul 96 - created
 # 17 Jan 97 - 0.21 released.
 #             short numbers and numbers with letters are no longer kosher.
+# 1 Feb 2001 - 0.22 released, new maintainer, MakeMaker installation
 #
 # Copyright 1995,1996,1997 Jon Orwant.  All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 # 
-# Version 0.21.  Module list status is "Rdpf."
+# Version 0.22.  Module list status is "Rdpf."
 
 require 5;
 
 require Exporter;
+use vars qw( @ISA $VERSION );
+
 @ISA = qw( Exporter );
+
+$VERSION = "0.22";
 
 =head1 NAME
 
@@ -63,11 +68,6 @@ for you, so I don't actually use this module.
 These subroutines will also work if you provide the arguments
 as numbers instead of strings, e.g. C<validate(5276440065421319)>.  
 
-To install this module, change directories to wherever
-your system keeps Perl modules (e.g. C</usr/local/lib/perl5>) and
-create a C<Business> directory if there's isn't one already.
-Then copy this file there.  That's it!
-
 =head1 AUTHOR
 
 Jon Orwant
@@ -75,6 +75,9 @@ Jon Orwant
 The Perl Journal and MIT Media Lab
 
 orwant@tpj.com
+
+Current maintainer is Ivan Kohler <ivan-business-creditcard@420.am>.
+Please don't bother Jon with emails about this module.
 
 =cut
 
