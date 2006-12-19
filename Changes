@@ -1,5 +1,17 @@
 Revision history for Perl extension Business::CreditCard.
 
+0.30  Mon Dec 18 23:24:25 PST 2006
+        - back after two and a half years; happy hanukkah!
+	- added note about B:CC:Object
+	- added new Discover 65 prefix
+	- check for Switch before Visa as Switch has some BINs in ^4
+        - accept masked numbers in cardtype()
+        - add handling of card network peering arrangements, controllable via
+          $Business::CreditCard::Country
+	- identify Diner's club ^36 cards as MasterCard in US and Canada
+        - identify China Union Pay cards as Discover cards outside China
+        - identify China Union Pay cards
+
 0.28  Thu Jul  1 01:17:32 PDT 2004
 	- added Switch and Solo cards, patch from Max Becker
 	- added proper Changes file

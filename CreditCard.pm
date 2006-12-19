@@ -2,7 +2,9 @@ package Business::CreditCard;
 
 # Jon Orwant, <orwant@media.mit.edu>
 #
-# Copyright 1995,1996,1997 Jon Orwant.  All rights reserved.
+# Copyright 1995,1996,1997 Jon Orwant
+# Copyright 2001-2006 Ivan Kohler
+# All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
@@ -12,11 +14,13 @@ package Business::CreditCard;
 require 5;
 
 require Exporter;
-use vars qw( @ISA $VERSION );
+use vars qw( @ISA $VERSION $Country );
 
 @ISA = qw( Exporter );
 
-$VERSION = "0.28";
+$VERSION = "0.30";
+
+$Country = 'US';
 
 =head1 NAME
 
@@ -42,7 +46,8 @@ The validate() subroutine returns 1 if the card number provided passes
 the checksum test, and 0 otherwise.
 
 The cardtype() subroutine returns a string containing the type of
-card.  My list is not complete; I welcome additions.
+card.  The list of possible return values is more comprehensive than it used
+to be, but additions are still most welcome.
 
 Possible return values are:
 
@@ -56,10 +61,18 @@ Possible return values are:
   BankCard
   Switch
   Solo
+  China Union Pay
   Unknown
 
-"Not a credit card" is returned on obviously invalid
-data values.
+"Not a credit card" is returned on obviously invalid data values.
+
+As of 0.30, cardtype() will accept a partial card masked with "x", "X', ".",
+"*" or "_".  Only the first 2-6 digits and the lenth are significant;
+whitespace and dashes are removed.  To recognize just Visa, MasterCard and
+Amex, you only need the first two digits; to recognize almost all cards
+except some Switch cards, you need the first four digits, and to recognize
+all cards including the remaining Switch cards, you need the first six
+digits.
 
 The generate_last_digit() subroutine computes and returns the last
 digit of the card given the preceding digits.  With a 16-digit card,
@@ -67,16 +80,39 @@ you provide the first 15 digits; the subroutine returns the sixteenth.
 
 This module does I<not> tell you whether the number is on an actual
 card, only whether it might conceivably be on a real card.  To verify
-whether a card is real, or whether it's been stolen, or what its
-balance is, you need a Merchant ID, which gives you access to credit
-card databases.  The Perl Journal (http://tpj.com/tpj) has
-a Merchant ID so that I can accept MasterCard and VISA payments; it
-comes with the little pushbutton/slide-your-card-through device you've
-seen in restaurants and stores.  That device calculates the checksum
-for you, so I don't actually use this module.
+whether a card is real, or whether it's been stolen, or to actually process
+charges, you need a Merchant account.  See L<Business::OnlinePayment>.
 
 These subroutines will also work if you provide the arguments
 as numbers instead of strings, e.g. C<validate(5276440065421319)>.  
+
+=head1 CHANGES IN 0.30
+
+Credit card issuers have recently been forming agreements to process cards on
+other networks, in which one type of card is processed as another card type.
+
+By default, Business::CreditCard returns the type the card should be treated as
+in the US and Canada.  You can change this to return the type the card should
+be treated as in a different country by setting
+C<$Business::OnlinePayment::Country> to your two-letter country code.  This
+is probably what you want to determine if you accept the card, or which
+merchant agreement is is processed through.
+
+You can also set C<$Business::OnlinePayment::Country> to a false value such
+as the empty string to return the "base" card type.  This is probably only
+useful for informational purposes when used along with the default type.
+
+Here are the currently known agreements:
+
+=over 4
+
+=item Diner's club cards (starting with 36) are now identified as "MasterCard" inside the US and Canada.
+
+=item China Union Pay cards are identified as Discover cards outside China.
+
+=back
+
+=item 
 
 =head1 AUTHOR
 
@@ -93,6 +129,15 @@ Lee Lawrence <LeeL@aspin.co.uk>, Neale Banks <neale@lowendale.com.au> and
 Max Becker <Max.Becker@firstgate.com> contributed support for additional card
 types.  Lee also contributed a working test.pl.
 
+=head1 SEE ALSO
+
+L<Business::CreditCard::Object> is a wrapper around Business::CreditCard
+providing an OO interface.  Assistance integrating this into the base
+Business::CreditCard distribution is welcome.
+
+L<Business::OnlinePayment> is a framework for processing online payments
+including modules for various payment gateways.
+
 =cut
 
 @EXPORT = qw(cardtype validate generate_last_digit);
@@ -100,52 +145,50 @@ types.  Lee also contributed a working test.pl.
 sub cardtype {
     my ($number) = @_;
 
-    return "Not a credit card" if $number =~ /[^\d\s]/;
+    $number =~ s/[\s\-]//go;
+    $number =~ s/[x\*\.\_]/x/gio;
 
-    $number =~ s/\D//g;
+    return "Not a credit card" if $number =~ /[^\dx]/io;
+
+    #$number =~ s/\D//g;
 
     return "Not a credit card" unless length($number) >= 13 && 0+$number;
 
-    return "VISA card" if $number =~ /^4\d{12}(\d{3})?$/o;
-    return "MasterCard" if $number =~ /^5[1-5]\d{14}$/o;
-    return "Discover card" if $number =~ /^6011\d{12}$/o;
-    return "American Express card" if $number =~ /^3[47]\d{13}$/o;
-    return "Diner's Club/Carte Blanche"
-      if $number =~ /^3(0[0-5]|[68]\d)\d{11}$/o;
-    return "enRoute" if $number =~ /^2(014|149)\d{11}$/o;
-    return "JCB" if $number =~ /^(3\d{4}|2131|1800)\d{11}$/o;
-    return "BankCard" if $number =~ /^56(10\d\d|022[1-5])\d{10}$/o;
     return "Switch"
-      if $number =~ /^49(03(0[2-9]|3[5-9])|11(0[1-2]|7[4-9]|8[1-2])|36[0-9]{2})\d{10}(\d{2,3})?$/o
-      || $number =~ /^564182\d{10}(\d{2,3})?$/o
-      || $number =~ /^6(3(33[0-4][0-9])|759[0-9]{2})\d{10}(\d{2,3})?$/o;
+      if $number =~ /^49(03(0[2-9]|3[5-9])|11(0[1-2]|7[4-9]|8[1-2])|36[0-9]{2})[\dx]{10}([\dx]{2,3})?$/o
+      || $number =~ /^564182[\dx]{10}([\dx]{2,3})?$/o
+      || $number =~ /^6(3(33[0-4][0-9])|759[0-9]{2})[\dx]{10}([\dx]{2,3})?$/o;
+
+    return "VISA card" if $number =~ /^4[\dx]{12}([\dx]{3})?$/o;
+
+    return "MasterCard"
+      if   $number =~ /^5[1-5][\dx]{14}$/o
+      || ( $number =~ /^36[\dx]{12}/ && $Country =~ /^(US|CA)$/oi );
+
+    return "Discover card"
+      if   $number =~ /^6011[\dx]{12}$/o
+      ||   $number =~ /^65[\dx]{14}$/o
+      || ( $number =~ /^622[\dx]{13}$/o && $Country !~ /^(CN)$/oi );
+
+    return "American Express card" if $number =~ /^3[47][\dx]{13}$/o;
+
+    return "Diner's Club/Carte Blanche"
+      if $number =~ /^3(0[0-5]|[68][\dx])[\dx]{11}$/o;
+
+    return "enRoute" if $number =~ /^2(014|149)[\dx]{11}$/o;
+
+    return "JCB" if $number =~ /^(3[\dx]{4}|2131|1800)[\dx]{11}$/o;
+
+    return "BankCard" if $number =~ /^56(10[\dx][\dx]|022[1-5])[\dx]{10}$/o;
+
     return "Solo"
-      if $number =~ /^6(3(34[5-9][0-9])|767[0-9]{2})\d{10}(\d{2,3})?$/o;
+      if $number =~ /^6(3(34[5-9][0-9])|767[0-9]{2})[\dx]{10}([\dx]{2,3})?$/o;
+
+    return "China Union Pay"
+      if $number =~ /^622[\dx]{13}$/o;
+
     return "Unknown";
 }
-
-# from http://perl.about.com/compute/perl/library/nosearch/P073000.htm
-# verified by http://www.beachnet.com/~hstiles/cardtype.html
-# Card Type                         Prefix                           Length
-# MasterCard                        51-55                            16
-# VISA                              4                                13, 16
-# American Express (AMEX)           34, 37                           15
-# Diners Club/Carte Blanche         300-305, 36, 38                  14
-# enRoute                           2014, 2149                       15
-# Discover                          6011                             16
-# JCB                               3                                16
-# JCB                               2131, 1800                       15
-#
-# from Neale Banks <neale@lowendale.com.au>
-# According to a booklet I have from Westpac (an Aussie bank), a card number
-# starting with 5610 or 56022[1-5] is a BankCard
-# BankCards have exactly 16 digits.
-#
-# from "Becker, Max" <Max.Becker@firstgate.com>
-# It's mostly used in the UK and is either called "Switch" or "Solo".
-# Card Type                         Prefix                           Length
-# Switch                            various                          16,18,19
-# Solo                              63, 6767                         16,18,19
 
 sub generate_last_digit {
     my ($number) = @_;

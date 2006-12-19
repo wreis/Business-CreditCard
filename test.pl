@@ -36,7 +36,8 @@ sub test_card_identification{
                 '371234567890123' =>    'American Express card',
                 '30112345678901' =>     "Diner's Club/Carte Blanche",
                 '30512345678901' =>     "Diner's Club/Carte Blanche",
-                '36123456789012' =>     "Diner's Club/Carte Blanche",
+                #'36123456789012' =>     "Diner's Club/Carte Blanche",
+                '36123456789012' =>     'MasterCard',
                 '38123456789012' =>     "Diner's Club/Carte Blanche",
                 '201412345678901' =>    'enRoute',
                 '214912345678901' =>    'enRoute',
@@ -46,6 +47,9 @@ sub test_card_identification{
                 '180012345678901' =>    'JCB',
                 '1800123456789012' =>   'Unknown',
                 '312345678901234' =>    'Unknown',
+                '4111xxxxxxxxxxxx' =>   'VISA card',
+                '6599xxxxxxxxxxxx' =>   'Discover card',
+                '6222xxxxxxxxxxxx' =>   'Discover card', #China Union Pay
         );
         while( my ($k, $v)=each(%test_table) ){
                 if(cardtype($k) ne $v){
