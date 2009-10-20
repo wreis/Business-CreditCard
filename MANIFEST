@@ -2,7 +2,7 @@ Changes
 CreditCard.pm
 MANIFEST
 Makefile.PL
-test.pl
 README
 BINS
-META.yml                                 Module meta-data (added by MakeMaker)
+META.yml
+t/test.t

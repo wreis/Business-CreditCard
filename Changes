@@ -1,5 +1,22 @@
 Revision history for Perl extension Business::CreditCard.
 
+0.31  Mon Oct 19 18:51:35 PDT 2009
+        - Add LICENSE section to POD documentation
+        - Add META.yml to MANIFEST
+        - Add Irish Laser card, thanks to Eoin Redmond for the heads-up.
+        - Add documentation on what this module *is* and *is NOT* about.
+        - Spelling fix in docs
+        - correct misdocumentation of $Business::CreditCard::Country
+        - Move test.pl to test/t and change to using Test::More, modify
+          MANIFEST and Makefile.PL accordingly (thanks to Alexander Ciornii)
+        - Silence unwanted warnings (thanks to Alexander Ciornii)
+        - Discover cards starting with 644-649 are now recognized
+        - Most Diner's Club cards (300-305, 3095 and 36) now processed as
+          Discover
+        - China Union pay now includes 624-626 and 628 in addition to 622 (and
+          still identified as Discover outside China)
+        - JCB identified as Discover in the US
+
 0.30  Mon Dec 18 23:24:25 PST 2006
         - back after two and a half years; happy hanukkah!
 	- added note about B:CC:Object

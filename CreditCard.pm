@@ -1,24 +1,11 @@
 package Business::CreditCard;
 
-# Jon Orwant, <orwant@media.mit.edu>
-#
-# Copyright 1995,1996,1997 Jon Orwant
-# Copyright 2001-2006 Ivan Kohler
-# All rights reserved.
-# This program is free software; you can redistribute it and/or
-# modify it under the same terms as Perl itself.
-#
-# Current maintainer is Ivan Kohler <ivan-business-creditcard@420.am>.
-# Please don't bother Jon with emails about this module.
-
-require 5;
-
 require Exporter;
 use vars qw( @ISA $VERSION $Country );
 
 @ISA = qw( Exporter );
 
-$VERSION = "0.30";
+$VERSION = "0.31";
 
 $Country = 'US';
 
@@ -55,19 +42,22 @@ Possible return values are:
   MasterCard
   Discover card
   American Express card
-  Diner's Club/Carte Blanche
   enRoute
   JCB
   BankCard
   Switch
   Solo
   China Union Pay
+  Laser
   Unknown
 
 "Not a credit card" is returned on obviously invalid data values.
 
+Versions before 0.31 may also have returned "Diner's Club/Carte Blanche" (these
+cards are now recognized as "Discover card").
+
 As of 0.30, cardtype() will accept a partial card masked with "x", "X', ".",
-"*" or "_".  Only the first 2-6 digits and the lenth are significant;
+"*" or "_".  Only the first 2-6 digits and the length are significant;
 whitespace and dashes are removed.  To recognize just Visa, MasterCard and
 Amex, you only need the first two digits; to recognize almost all cards
 except some Switch cards, you need the first four digits, and to recognize
@@ -86,7 +76,7 @@ charges, you need a Merchant account.  See L<Business::OnlinePayment>.
 These subroutines will also work if you provide the arguments
 as numbers instead of strings, e.g. C<validate(5276440065421319)>.  
 
-=head1 CHANGES IN 0.30
+=head1 PROCESSING AGREEMENTS
 
 Credit card issuers have recently been forming agreements to process cards on
 other networks, in which one type of card is processed as another card type.
@@ -94,11 +84,11 @@ other networks, in which one type of card is processed as another card type.
 By default, Business::CreditCard returns the type the card should be treated as
 in the US and Canada.  You can change this to return the type the card should
 be treated as in a different country by setting
-C<$Business::OnlinePayment::Country> to your two-letter country code.  This
+C<$Business::CreditCard::Country> to your two-letter country code.  This
 is probably what you want to determine if you accept the card, or which
-merchant agreement is is processed through.
+merchant agreement it is processed through.
 
-You can also set C<$Business::OnlinePayment::Country> to a false value such
+You can also set C<$Business::CreditCard::Country> to a false value such
 as the empty string to return the "base" card type.  This is probably only
 useful for informational purposes when used along with the default type.
 
@@ -106,13 +96,19 @@ Here are the currently known agreements:
 
 =over 4
 
-=item Diner's club cards (starting with 36) are now identified as "MasterCard" inside the US and Canada.
+=item Most Diner's club is now identified as Discover.  (This supercedes the earlier identification of some Diner's club cards as MasterCard inside the US and Canada.)
+
+=item JCB cards in the 3528-3589 range are identified as Discover inside the US and Canada.
 
 =item China Union Pay cards are identified as Discover cards outside China.
 
 =back
 
-=item 
+=head1 NOTE ON INTENDED PURPOSE
+
+This module is for verifying I<real world> B<credit cards>.  It is B<NOT> a
+pedantic implementation of the ISO 7812 standard, a general-purpose LUHN
+implementation, or intended for use with "creditcard-like account numbers".
 
 =head1 AUTHOR
 
@@ -127,7 +123,18 @@ Please don't bother Jon with emails about this module.
 
 Lee Lawrence <LeeL@aspin.co.uk>, Neale Banks <neale@lowendale.com.au> and
 Max Becker <Max.Becker@firstgate.com> contributed support for additional card
-types.  Lee also contributed a working test.pl.
+types.  Lee also contributed a working test.pl.  Alexandr Ciornii
+<alexchorny@gmail.com> contributed code cleanups.
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 1995,1996,1997 Jon Orwant
+Copyright (C) 2001-2006 Ivan Kohler
+Copyright (C) 2007-2009 Freeside Internet Services, Inc.
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.8 or,
+at your option, any later version of Perl 5 you may have available.
 
 =head1 SEE ALSO
 
@@ -151,8 +158,10 @@ sub cardtype {
     return "Not a credit card" if $number =~ /[^\dx]/io;
 
     #$number =~ s/\D//g;
-
-    return "Not a credit card" unless length($number) >= 13 && 0+$number;
+    {
+      local $^W=0; #no warning at next line
+      return "Not a credit card" unless length($number) >= 13 && 0+$number;
+    }
 
     return "Switch"
       if $number =~ /^49(03(0[2-9]|3[5-9])|11(0[1-2]|7[4-9]|8[1-2])|36[0-9]{2})[\dx]{10}([\dx]{2,3})?$/o
@@ -163,18 +172,24 @@ sub cardtype {
 
     return "MasterCard"
       if   $number =~ /^5[1-5][\dx]{14}$/o
-      || ( $number =~ /^36[\dx]{12}/ && $Country =~ /^(US|CA)$/oi );
+      ;# || ( $number =~ /^36[\dx]{12}/ && $Country =~ /^(US|CA)$/oi );
 
     return "Discover card"
-      if   $number =~ /^6011[\dx]{12}$/o
+      if   $number =~ /^30[0-5][\dx]{11}([\dx]{2})?$/o  #diner's: 300-305
+      ||   $number =~ /^3095[\dx]{10}([\dx]{2})?$/o     #diner's: 3095
+      ||   $number =~ /^3[68][\dx]{12}([\dx]{2})?$/o    #diner's: 36
+      ||   $number =~ /^6011[\dx]{12}$/o
+      ||   $number =~ /^64[4-9][\dx]{13}$/o
       ||   $number =~ /^65[\dx]{14}$/o
-      || ( $number =~ /^622[\dx]{13}$/o && $Country !~ /^(CN)$/oi );
+      || ( $number =~ /^62[24-68][\dx]{13}$/o && uc($Country) ne 'CN' ) #CUP
+      || ( $number =~ /^35(2[89]|[3-8][\dx])[\dx]{10}$/o && uc($Country) eq 'US' );
 
     return "American Express card" if $number =~ /^3[47][\dx]{13}$/o;
 
-    return "Diner's Club/Carte Blanche"
-      if $number =~ /^3(0[0-5]|[68][\dx])[\dx]{11}$/o;
+    #return "Diner's Club/Carte Blanche"
+    #  if $number =~ /^3(0[0-59]|[68][\dx])[\dx]{11}$/o;
 
+    #"Diners Club enRoute"
     return "enRoute" if $number =~ /^2(014|149)[\dx]{11}$/o;
 
     return "JCB" if $number =~ /^(3[\dx]{4}|2131|1800)[\dx]{11}$/o;
@@ -185,7 +200,10 @@ sub cardtype {
       if $number =~ /^6(3(34[5-9][0-9])|767[0-9]{2})[\dx]{10}([\dx]{2,3})?$/o;
 
     return "China Union Pay"
-      if $number =~ /^622[\dx]{13}$/o;
+      if $number =~ /^62[24-68][\dx]{13}$/o;
+
+    return "Laser"
+      if $number =~ /^6(304|7(06|09|71))[\dx]{12,15}$/o;
 
     return "Unknown";
 }
