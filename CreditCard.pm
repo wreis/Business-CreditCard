@@ -29,10 +29,10 @@ These subroutines tell you whether a credit card number is
 self-consistent -- whether the last digit of the number is a valid
 checksum for the preceding digits.  
 
-The validate() subroutine returns 1 if the card number provided passes
+The C<validate()> subroutine returns 1 if the card number provided passes
 the checksum test, and 0 otherwise.
 
-The cardtype() subroutine returns a string containing the type of
+The C<cardtype()> subroutine returns a string containing the type of
 card.  The list of possible return values is more comprehensive than it used
 to be, but additions are still most welcome.
 
@@ -56,7 +56,7 @@ Possible return values are:
 Versions before 0.31 may also have returned "Diner's Club/Carte Blanche" (these
 cards are now recognized as "Discover card").
 
-As of 0.30, cardtype() will accept a partial card masked with "x", "X', ".",
+As of 0.30, C<cardtype()> will accept a partial card masked with "x", "X', ".",
 "*" or "_".  Only the first 2-6 digits and the length are significant;
 whitespace and dashes are removed.  To recognize just Visa, MasterCard and
 Amex, you only need the first two digits; to recognize almost all cards
@@ -64,7 +64,7 @@ except some Switch cards, you need the first four digits, and to recognize
 all cards including the remaining Switch cards, you need the first six
 digits.
 
-The generate_last_digit() subroutine computes and returns the last
+The C<generate_last_digit()> subroutine computes and returns the last
 digit of the card given the preceding digits.  With a 16-digit card,
 you provide the first 15 digits; the subroutine returns the sixteenth.
 
